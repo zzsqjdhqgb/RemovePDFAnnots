@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 引入Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="./del-annot.js"></script>
+    <title>删除PDF注释</title>
+    <style>
+        .input-group {
+            width: 100%;
+        }
+
+        .btn {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        #result {
+            margin-top: 10px;
+            display: inline-block;
+            /* 使链接独占一行 */
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h1 class="text-center mb-4">删除PDF注释</h1>
+                <label for="pdfInput" class="form-label">选择PDF文件</label>
+                <div class="input-group mb-3">
+                    <input type="file" class="form-control" id="pdfInput" accept=".pdf">
+                </div>
+                <button type="button" class="btn btn-primary" onclick="convertToPDFDocument()">开始处理</button>
+                <span id="result_box" style="display: none; word-wrap: break-word; margin-top: 20px;">
+                    <span class="result-label" style="display: inline;">处理完成：</span>
+                    <a id="result" href="#" class="link-secondary" style="display: inline;">example.pdf</a>
+                </span>
+            </div>
+        </div>
+    </div>
+    <script>
+        async function convertToPDFDocument() {
+            try {
+                const input = document.getElementById('pdfInput');
+                if (!input.files.length) {
+                    alert('Please select a PDF file.');
+                    return;
+                }
+
+                const file = input.files[0];
+                const arrayBuffer = await file.arrayBuffer();
+                const pdfBytes = new Uint8Array(arrayBuffer);
+                const changedPdf = await process(pdfBytes);
+                const blob = new Blob([changedPdf], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.getElementById("result");
+                a.href = url;
+                let fullname = file.name
+                let name = fullname.substring(0, fullname.lastIndexOf('.')) + "(Without Annots).pdf";
+                a.download = name;
+                a.innerText = name;
+                document.getElementById("result_box").style.display = "block";
+            } catch (error) {
+                console.error('Error converting PDF:', error);
+                alert('Failed to save PDF.');
+            }
+        }
+        document.getElementById('pdfInput').addEventListener("change", () => {
+            document.getElementById("result_box").style.display = "none";
+            const a = document.getElementById("result");
+            if (a.href != "#" && a.href != undefined) {
+                URL.revokeObjectURL(a.href);
+            }
+            a.href = "#";
+            a.innerText = "";
+        });
+    </script>
+</body>
+
+</html>
